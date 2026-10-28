@@ -1,0 +1,112 @@
+# NinaPro DB6 dataset declaration, role assignment, and the pre-registered
+# exclusion rule. Stage A0 reads ONLY names and byte sizes from here; it must not
+# open a signal.
+
+dataset:
+  kaggle_ref: trilucas/semg-db6
+  # Pinned version. Kaggle refuses to attach a newly-created dataset in a
+  # non-interactive session unless a version is pinned; two earlier kernels are
+  # stuck in status=error for exactly this reason.
+  kaggle_version: 1
+  # Discovery glob. The zip archives nest one level (DB6_s1_a/S1_D1_T1.mat) but
+  # Kaggle's listing shows two (DB6_s2_a/DB6_s2_a/S2_D2_T2.mat) because it zips
+  # the already-extracted tree. Never hardcode a depth.
+  glob: "**/*.mat"
+  local_zip_glob: "DB6_s*_*.zip"
+  local_zip_dir: /home/lucas/Downloads   # symlinked into data/raw/db6, never extracted
+
+sampling:
+  fs_hz: 2000
+  # Documented by the DB6 guidelines page verbatim:
+  # "The sEMG signals are sampled at a rate of 2 kHz."
+
+signals:
+  # Variables loaded from each .mat. Loading only these keeps a file read at
+  # ~0.9 s instead of materialising the 48 accelerometer columns.
+  variables: [emg, restimulus, rerepetition, stimulus, repetition, object, daytesting, subj]
+
+matrix:
+  # `emg` is (N, 16). Two of those 16 columns are structurally empty, giving the
+  # 14 physical Delsys Trigno electrodes the dataset documents.
+  # CH01..CH16 map to matrix index 0..15 in order -- the channel ID is a matrix
+  # column, NOT an anatomical position. Nothing in this project may assume CH11
+  # is "somewhere on the forearm".
+  matrix_columns: 16
+  expected_physical_channels: 14
+  expected_structural_empty_columns: 2
+  channel_id_format: "CH{:02d}"     # CH01..CH16, 1-based, = index+1
+  accelerometer_columns: 48
+  expected_structural_empty_acc_columns: 6
+
+# ---------------------------------------------------------------------------
+# Roles. Assigned from day/session ONLY. The `_a` / `_b` filename suffix is a
+# download-bundle artefact and must never influence the split (AGENT.md rule 1:
+# split by subject/session before windowing).
+# ---------------------------------------------------------------------------
+roles:
+  train:
+    day: 1
+    session: 1
+    files_expected: 10
+    signal_read_allowed: true
+    purpose: Fit model weights and the per-channel normalisation scaler.
+  validation:
+    day: 1
+    session: 2
+    files_expected: 10
+    signal_read_allowed: true
+    purpose: Early stopping, checkpoint selection, channel and model selection.
+  reserve:
+    day: 2
+    session: 1
+    files_expected: 10
+    signal_read_allowed: false
+    purpose: Reserved for the future adaptation phase. MUST NOT be read now.
+  test:
+    day: 2
+    session: 2
+    files_expected: 10
+    signal_read_allowed: after_selection_lock
+    purpose: Final inter-session evaluation. Read only after selection_lock.json.
+  future:
+    day: [3, 4, 5]
+    session: [1, 2]
+    files_expected: 60
+    signal_read_allowed: false
+    purpose: Out of scope for this phase.
+
+# ---------------------------------------------------------------------------
+# Pre-registered file exclusion. Decided from byte size alone, before any Test
+# signal exists, so the exclusion cannot be influenced by Test results.
+#
+# Measured on the 100 archives: S2_D2_T2 is 32,519,877 B, while the smallest file
+# in every other role is 0.8962x that role's median. 0.1486 vs 0.8962 leaves a
+# wide gap, so a 0.5 threshold is not a tuned number.
+# ---------------------------------------------------------------------------
+exclusion_rule:
+  name: truncated_file_by_size
+  enabled: true
+  role: test
+  rule: bytes < ratio_threshold * median_bytes_of_role
+  ratio_threshold: 0.5
+  # Recorded rationale, emitted into results/... so the report can state why the
+  # Test set has 9 subjects instead of 10.
+  expected_exclusions:
+    - file: S2_D2_T2.mat
+      subject: 2
+      role: test
+      bytes: 32519877
+      reason_code: S2_D2_T2_truncated
+      reason: >
+        Recording is truncated: 32.5 MB versus a 218.9 MB role median (ratio
+        0.1486), ~206k samples versus ~1.43M, and only labels {0,1} present
+        instead of the full 8-class set. Excluded by the size rule above, not by
+        any Test accuracy observation.
+
+qc:
+  # Stage A1 reads exactly the 20 Train + Validation files. QC on the other 80 is
+  # deliberately NOT performed in this phase: reading them would violate the
+  # no-peek rule for Reserve/Test/Future.
+  files_scope: train_and_validation
+  # Full description of every metric and threshold lives in pipeline.yaml.
+  emit_per_file_rows: true

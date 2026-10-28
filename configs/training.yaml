@@ -1,0 +1,73 @@
+# Training protocol, shared by every stage.
+#
+# Reproducibility contract: the same seed and the same config must reproduce a run
+# within `repro_tolerance` below. Bitwise identity is NOT required -- cuDNN picks
+# different kernels between runs and a bitwise requirement would be a requirement
+# to disable the GPU. What is required is that the decision (which epoch, which
+# checkpoint, which channel) does not change.
+
+optimizer:
+  name: adam
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+
+loader:
+  batch_size: 128
+  # Windows within a role are contiguous and overlapping; shuffling the TRAIN
+  # loader is required so a batch is not one gesture. Validation and Test are
+  # never shuffled: their window order is the manifest order, which makes the
+  # saved predictions auditable row by row.
+  shuffle_train: true
+  shuffle_eval: false
+  num_workers: 0          # in-process; the data are already in RAM as float32
+  pin_memory: true
+
+epochs:
+  max_epochs: 50
+  # Screening stages cap lower so a bad channel cannot burn a full budget.
+  pilot_max_epochs: 40
+  early_stopping_patience: 8
+  early_stopping_metric: validation_accuracy
+  min_delta: 0.0
+
+loss:
+  name: cross_entropy
+  # No class weighting. REST is ~24.5 % of windows, not a rarity, and weighting
+  # would make accuracy -- the headline metric -- harder to interpret.
+  class_weights: none
+
+augmentation:
+  # None. Any augmentation here would be a training-time transform that the
+  # firmware cannot reproduce, and it would blur the channel comparison.
+  enabled: false
+
+seeds:
+  # Five seeds. 11/22/33 drive selection; 44/55 exist so the final number is a
+  # mean over five runs rather than a lucky one.
+  all: [11, 22, 33, 44, 55]
+  screening: [11]        # Stage B: one seed, cheap
+  confirm: [11, 22, 33]  # Stage C and D: three seeds
+  extra: [44, 55]        # Stage E: completes the five
+
+checkpoint:
+  # Two epochs with identical validation accuracy: the lower validation
+  # cross-entropy wins. This is an epoch-vs-epoch rule inside ONE run.
+  tie_break: validation_loss
+  save_best_only: true
+  save_optimizer_state: false
+
+reproducibility:
+  # Seed Python, NumPy, torch (CPU + CUDA) and the DataLoader generator.
+  seed_python: true
+  seed_numpy: true
+  seed_torch: true
+  seed_cuda: true
+  deterministic_algorithms: false   # keeps the GPU fast; tolerance covers it
+  record_environment: [python, torch, cuda, gpu_name, gpu_total_memory]
+  # Acceptance threshold for "same seed + same config reproduces the run".
+  # accuracy is a mean over ~6.9k windows per subject, so 0.002 is well inside
+  # sampling noise while still catching a real regression.
+  tolerance:
+    accuracy_abs: 0.002
+    identical_prediction_fraction: 0.995
+    epoch_index_abs: 1

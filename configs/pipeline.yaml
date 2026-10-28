@@ -1,0 +1,107 @@
+# Windowing, normalisation, and QC thresholds.
+#
+# Every number here was fixed BEFORE any training run, and the plan (§6) records
+# the measurement that justifies it. Nothing in this file may be tuned after
+# looking at Validation or Test accuracy -- changing a value here changes
+# config_sha256, which invalidates selection_lock.json and makes run_final_test.py
+# refuse to run. That refusal is the point.
+
+windowing:
+  fs_hz: 2000
+  # 400 samples @ 2 kHz = 200 ms.
+  window_samples: 400
+  # 200 samples = 100 ms, i.e. 50 % overlap.
+  hop_samples: 200
+  # A window must lie entirely inside ONE contiguous (restimulus, rerepetition)
+  # segment. No window may straddle a rest->grasp transition, a repetition
+  # boundary, or a gap in the recording. This is a leakage rule, not a
+  # preference: a straddling window would contain future samples relative to its
+  # own label, and the label itself would be ambiguous.
+  require_window_inside_segment: true
+  # REST windows come from the gaps between active segments (restimulus == 0).
+  include_rest_class: true
+  # Windows are emitted as indices only. Signal is materialised per channel on
+  # demand, so the pipeline never needs the whole 21 GB resident.
+  store_signal: false
+
+normalization:
+  # Global z-score, per channel, fitted on TRAIN (D1_T1) ONLY.
+  #
+  # AGENT.md rule 2 (causal): a single mean/std per channel is a constant that can
+  # be baked into the firmware, so this is reproducible sample-by-sample on the
+  # device. A per-window z-score would not be a fixed transform and is forbidden
+  # here -- it also silently removes amplitude information that separates grasp
+  # from rest.
+  method: global_train_zscore
+  fit_role: train
+  per_channel: true
+  eps: 1.0e-8
+  # One scaler per candidate channel, fitted once and reused by every model and
+  # every seed. Five seeds must NOT produce five different scalers.
+  one_scaler_per_channel: true
+
+filtering:
+  # DB6 ships a preprocessed variant and the guidelines page never names a
+  # preprocessing filter, so we add none. Inventing one would make our numbers
+  # incomparable with the dataset as published, and AGENT.md rule 2 requires any
+  # filter to be causally reproducible on the device anyway.
+  additional_filter: none
+  source_variant: DB6_Preproc
+
+# ---------------------------------------------------------------------------
+# QC thresholds. Every threshold below produces a FLAG. None of them silently
+# deletes data: a column is dropped only when the DB6 documentation says it is
+# structurally empty, and that is verified against the data rather than assumed.
+# ---------------------------------------------------------------------------
+qc:
+  # Structural emptiness: a column that is EXACTLY constant for the whole file.
+  # Measured on all 20 Train+Validation files: exactly two columns (matrix index
+  # 8 and 9, i.e. CH09 and CH10) have std == 0.0 and frozen_fraction == 1.0,
+  # while all 14 others have frozen_fraction == 0.0000 and a longest identical
+  # run of at most 2 samples (1 ms). The gap is not a judgement call.
+  structural_empty:
+    std_abs_max: 0.0
+    frozen_fraction_min: 1.0
+
+  # Per-file dead-channel test: std of this channel versus the median std of the
+  # live channels IN THE SAME FILE. Relative, because electrode gain and skin
+  # impedance differ between sessions.
+  dead_channel:
+    ratio_threshold: 0.01
+    reference: median_std_of_live_channels_in_same_file
+
+  # Low amplitude is a FLAG, never a drop (spec §2.2). ch08 sits at 0.009-0.063
+  # and ch16 drops to 0.003-0.005 for subject 9 while staying at 0.54-0.96 for
+  # subjects 1-2, so channel health is per-file, not a global property.
+  low_amplitude:
+    ratio_min: 0.01
+    ratio_max: 0.05
+
+  # Any NaN or Inf is a hard failure for the file -- not a flag. A file that
+  # contains them cannot be windowed without inventing values.
+  nan_inf:
+    max_fraction: 0.0
+    on_violation: fail_file
+
+  clipping:
+    # Fraction of samples within `extreme_tolerance` of the file's own min/max.
+    extreme_tolerance: 1.0e-12
+    flag_fraction: 0.001
+
+  # 50 Hz mains contamination. Ratio of mean PSD in 48.5-51.5 Hz to the median
+  # PSD in the flanking 42-48 Hz and 52-58 Hz bands. Measured across the 100
+  # files earlier: medians 1.15-2.10, p90 for the worst channel 7.30, so a
+  # threshold of 10 flags roughly the top few percent of (file, channel) rows
+  # rather than everything.
+  mains:
+    band_hz: [48.5, 51.5]
+    flank_hz: [[42.0, 48.0], [52.0, 58.0]]
+    flag_ratio: 10.0
+
+  # A file yielding fewer than this many windows is a symptom (truncation, bad
+  # segmentation), not a small dataset. Measured yield is 6,891 windows/file.
+  min_windows_per_file: 1000
+
+  # A segment shorter than one window yields zero windows. That is expected for
+  # most REST gaps and is recorded, never padded.
+  min_segment_samples: 400

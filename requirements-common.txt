@@ -1,0 +1,16 @@
+# Dependencies shared by the local workstation and the Kaggle image.
+# Exact pins: a run record is only meaningful if the environment is reproducible.
+# torch is deliberately NOT listed here -- see requirements-local.txt /
+# requirements-kaggle.txt. The two environments need different torch builds
+# (local CUDA 13.0 wheel vs. whatever the Kaggle image ships), and pinning one
+# torch in a shared file is exactly how a working local env breaks a Kaggle run.
+
+numpy==2.3.4
+scipy==1.18.0
+scikit-learn==1.9.0
+matplotlib==3.10.8
+PyYAML==6.0.3
+requests==2.33.0
+pandas==2.3.3
+pyarrow==22.0.0
+pytest==9.0.1

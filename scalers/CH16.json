@@ -1,0 +1,10 @@
+{
+  "channel": "CH16",
+  "eps": 1e-08,
+  "fit_role": "train",
+  "mean": 1.1795754646233277e-09,
+  "method": "global_train_zscore",
+  "n_samples_fit": 14301548,
+  "sha256": "ced299864ed6435a8abfb55efc38e66edbd8f87937a445f89291ca2917a1d6c0",
+  "std": 5.388917014133118e-06
+}

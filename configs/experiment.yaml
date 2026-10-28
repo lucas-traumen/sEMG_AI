@@ -1,0 +1,165 @@
+# Experiment definition: the scope assertions, the stage ladder, and the decision
+# rules. This file is the top of the config stack -- every stage reads it first.
+
+schema_version: 1
+
+# ---------------------------------------------------------------------------
+# SCOPE. These three keys are the difference between 49 training runs and 490.
+# tests/test_scope.py asserts them, because getting this wrong silently tenfolds
+# the compute budget and produces a report that answers a different question.
+#
+#  - One model, trained on windows pooled across subjects.
+#  - One channel, used for every subject.
+#  - Subject is a REPORTING unit only: accuracy is computed per subject, then
+#    averaged. It is never a model boundary and never a checkpoint suffix.
+# ---------------------------------------------------------------------------
+scope:
+  training_scope: pooled_subjects
+  selected_channel_scope: global
+  subject_role: reporting_unit_only
+  checkpoint_naming: "<channel>/<model>/seed_<seed>.pt"   # no subject_id anywhere
+
+evaluation:
+  # Accuracy is computed per subject, then per seed, then across seeds.
+  # Windows are NEVER pooled into one big correct/total ratio: pooling lets a
+  # subject with more windows dominate, and the per-subject spread is precisely
+  # one of the numbers the report has to show.
+  unit: per_subject_then_per_seed
+  primary_metric: subject_mean_window_accuracy
+  report_across_subject: [mean, sd, se, min, max]
+  report_across_seed: [mean, sd]
+  headline_seed_rule: five_seed_mean
+  forbid_best_seed_headline: true
+
+selection:
+  # Equal-weight points of the selection ladder.
+  pilot_subjects: [1, 3, 7]
+  pilot_keep: 5
+  confirm_keep: 3
+  # Two (channel, model) configurations whose mean validation accuracy differs by
+  # less than this are NOT distinguishable by this experiment.
+  #
+  # Justification, measured not guessed: one subject contributes ~6,891 windows
+  # at p ~ 0.25, so the per-subject accuracy SD is ~0.0052. Averaging 10 subjects
+  # puts the standard error of a seed-mean at ~0.00165, and averaging 3 seeds
+  # shrinks it further. 0.005 is roughly 3 SE of the 10-subject mean -- small
+  # enough to catch a real gap, wide enough that a 0.002 "win" is not reported as
+  # a finding.
+  tolerance: 0.005
+  # Applied only inside the tolerance. Two configurations winning by the same
+  # amount are ordered by mean validation loss, then by parameter count.
+  tie_break_chain: [mean_validation_loss_asc, param_count_asc]
+  # Seeds are NOT competitors. Each seed produces one estimate of the same
+  # quantity; the seed is an averaging unit and a source of variance to report,
+  # never a candidate to rank.
+  seed_role: averaging_unit
+  forbid_seed_ranking: true
+
+# ---------------------------------------------------------------------------
+# Stage ladder. The `stage` names are also the RESULT_JSON `stage` values and the
+# reports/<stage>.json filenames.
+# ---------------------------------------------------------------------------
+stages:
+  - name: inventory           # A0
+    script: scripts/run_preflight.py --stage inventory
+    trains: 0
+    reads_signal: false
+    description: >
+      Enumerate the 100 files from archive metadata only. Assign roles from
+      day/session, apply the pre-registered size-exclusion rule.
+  - name: qc                  # A1
+    script: scripts/run_preflight.py --stage qc
+    trains: 0
+    reads_signal: train_validation_only
+    description: >
+      QC all 16 matrix columns on the 20 Train+Validation files, build the channel
+      map, and emit the Train/Validation window manifest plus one scaler per
+      candidate channel.
+  - name: channel_pilot       # B
+    script: scripts/run_channel_pilot.py
+    trains: 14
+    description: Every QC-eligible channel x pilot subjects x one seed.
+  - name: channel_confirm     # C
+    script: scripts/run_channel_confirm.py
+    trains: 15
+    description: Top 5 channels x 3 seeds x all 10 subjects.
+  - name: channel_model_grid  # D
+    script: scripts/run_model_grid.py
+    trains: 18
+    reuses: 9
+    description: Top 3 channels x 3 models x 3 seeds; the cnn_base cells are reused.
+  - name: complete_five_seeds # E
+    script: scripts/run_complete_five_seeds.py
+    trains: 2
+    reuses: 3
+    description: Train seeds 44 and 55 on the locked (channel, model).
+  - name: final_test          # F
+    script: scripts/run_final_test.py
+    trains: 0
+    reads_signal: test_after_selection_lock
+    description: Evaluate the five locked checkpoints on the Test manifest.
+
+expected_total_training_runs: 49
+
+paths:
+  configs: configs
+  raw_zip_dir: data/raw/db6
+  manifest_dir: data/manifest
+  results_dir: results
+  scalers_dir: scalers
+  checkpoints_dir: checkpoints
+  reports_dir: reports
+  figures_dir: results/figures
+
+kaggle:
+  kernel_ref: trilucas/semg-db6-ai-v1
+  # The notebook must run code from an exact commit, never from a moving branch.
+  # When the kernel has no Internet, notebooks/kaggle_entry.py unpacks an embedded
+  # tarball of this commit and verifies its SHA-256 before importing anything.
+  require_pinned_git_commit: true
+  result_line_prefix: "RESULT_JSON "
+  per_stage_report: true
+
+# Files a stage may write. Anything not listed here is a bug: the pipeline must
+# not scatter artefacts. tests/test_repo_layout.py checks this list is honoured.
+outputs:
+  inventory:
+    - data/manifest/db6_files.csv
+    - reports/inventory.json
+  qc:
+    - data/manifest/trainval_windows.parquet
+    - data/manifest/manifest_sha256.txt
+    - results/channel_qc.csv
+    - results/channel_map.json
+    - results/qc_windows_per_file.csv
+    - scalers/<channel>.json
+    - results/access_audit.jsonl
+    - reports/qc.json
+  channel_pilot:
+    - results/channel_pilot.csv
+    - results/channel_pilot_subject.csv
+    - reports/channel_pilot.json
+  channel_confirm:
+    - results/channel_confirm.csv
+    - results/channel_confirm_subject.csv
+    - results/selection_ranking.json
+    - reports/channel_confirm.json
+  channel_model_grid:
+    - results/channel_model_grid.csv
+    - results/channel_model_grid_subject.csv
+    - results/model_stats.json
+    - results/selection_lock.json
+    - reports/channel_model_grid.json
+  complete_five_seeds:
+    - checkpoints/<channel>/<model>/seed_<seed>.pt
+    - checkpoints/<channel>/<model>/seed_<seed>.json
+    - reports/complete_five_seeds.json
+  final_test:
+    - data/manifest/test_windows.parquet
+    - results/final_accuracy_by_seed.csv
+    - results/final_accuracy_by_subject.csv
+    - results/per_class_recall.csv
+    - results/confusion_matrix_window.png
+    - results/predictions/test_logits_seed_<seed>.npz
+    - results/summary.md
+    - reports/final_test.json

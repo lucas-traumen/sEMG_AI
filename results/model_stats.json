@@ -1,0 +1,208 @@
+{
+  "common": {
+    "input_length": 400,
+    "macs_denominator": "one window of 400 samples, batch 1",
+    "num_classes": 8
+  },
+  "models": [
+    {
+      "expected_params": 11384,
+      "flops_measured": 2347008,
+      "flops_over_macs_ratio": 2.0,
+      "input_shape": [
+        1,
+        1,
+        400
+      ],
+      "macs_analytic": 1173504,
+      "model": "cnn_small",
+      "output_is_logits": true,
+      "output_shape": [
+        1,
+        8
+      ],
+      "params": 11384,
+      "params_match_config": true
+    },
+    {
+      "expected_params": 44264,
+      "flops_measured": 9207808,
+      "flops_over_macs_ratio": 2.0,
+      "input_shape": [
+        1,
+        1,
+        400
+      ],
+      "macs_analytic": 4603904,
+      "model": "cnn_base",
+      "output_is_logits": true,
+      "output_shape": [
+        1,
+        8
+      ],
+      "params": 44264,
+      "params_match_config": true
+    },
+    {
+      "expected_params": 168232,
+      "flops_measured": 19088384,
+      "flops_over_macs_ratio": 2.0,
+      "input_shape": [
+        1,
+        1,
+        400
+      ],
+      "macs_analytic": 9544192,
+      "model": "cnn_wide",
+      "output_is_logits": true,
+      "output_shape": [
+        1,
+        8
+      ],
+      "params": 168232,
+      "params_match_config": true
+    }
+  ],
+  "note": "macs_analytic comes from an explicit per-layer formula (see macs_per_layer); flops_measured comes from torch FlopCounterMode. They are separate numbers and MACs is never derived as flops // 2.",
+  "per_layer": {
+    "cnn_base": [
+      {
+        "in_channels": 1,
+        "kernel_size": 7,
+        "layer": "conv1",
+        "macs": 89600,
+        "out_channels": 32,
+        "out_length": 400,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 32,
+        "kernel_size": 5,
+        "layer": "conv2",
+        "macs": 2048000,
+        "out_channels": 64,
+        "out_length": 200,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 64,
+        "kernel_size": 3,
+        "layer": "conv3",
+        "macs": 2457600,
+        "out_channels": 128,
+        "out_length": 100,
+        "type": "Conv1d"
+      },
+      {
+        "in_features": 128,
+        "layer": "fc1",
+        "macs": 8192,
+        "out_features": 64,
+        "type": "Linear"
+      },
+      {
+        "in_features": 64,
+        "layer": "fc2",
+        "macs": 512,
+        "out_features": 8,
+        "type": "Linear"
+      }
+    ],
+    "cnn_small": [
+      {
+        "in_channels": 1,
+        "kernel_size": 7,
+        "layer": "conv1",
+        "macs": 44800,
+        "out_channels": 16,
+        "out_length": 400,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 16,
+        "kernel_size": 5,
+        "layer": "conv2",
+        "macs": 512000,
+        "out_channels": 32,
+        "out_length": 200,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 32,
+        "kernel_size": 3,
+        "layer": "conv3",
+        "macs": 614400,
+        "out_channels": 64,
+        "out_length": 100,
+        "type": "Conv1d"
+      },
+      {
+        "in_features": 64,
+        "layer": "fc1",
+        "macs": 2048,
+        "out_features": 32,
+        "type": "Linear"
+      },
+      {
+        "in_features": 32,
+        "layer": "fc2",
+        "macs": 256,
+        "out_features": 8,
+        "type": "Linear"
+      }
+    ],
+    "cnn_wide": [
+      {
+        "in_channels": 1,
+        "kernel_size": 7,
+        "layer": "conv1",
+        "macs": 89600,
+        "out_channels": 32,
+        "out_length": 400,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 32,
+        "kernel_size": 5,
+        "layer": "conv2",
+        "macs": 2048000,
+        "out_channels": 64,
+        "out_length": 200,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 64,
+        "kernel_size": 3,
+        "layer": "conv3",
+        "macs": 2457600,
+        "out_channels": 128,
+        "out_length": 100,
+        "type": "Conv1d"
+      },
+      {
+        "in_channels": 128,
+        "kernel_size": 3,
+        "layer": "conv4",
+        "macs": 4915200,
+        "out_channels": 256,
+        "out_length": 50,
+        "type": "Conv1d"
+      },
+      {
+        "in_features": 256,
+        "layer": "fc1",
+        "macs": 32768,
+        "out_features": 128,
+        "type": "Linear"
+      },
+      {
+        "in_features": 128,
+        "layer": "fc2",
+        "macs": 1024,
+        "out_features": 8,
+        "type": "Linear"
+      }
+    ]
+  },
+  "schema_version": 1
+}

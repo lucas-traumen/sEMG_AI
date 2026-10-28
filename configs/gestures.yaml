@@ -1,0 +1,81 @@
+# Gesture set for NinaPro DB6.
+#
+# PROVENANCE -- these names are not guessed and not taken from a third-party
+# summary. Two independent facts from the dataset's own documentation agree:
+#
+#   1. The official DB6 movements figure
+#      (https://ninapro.hevs.ch/instructions/DB6.html -> DB6_movements1.jpg)
+#      prints the seven grasp names in this exact left-to-right column order:
+#      Large Diameter, Adducted Thumb, Index Finger Extension, Medium Wrap,
+#      Writing Tripod, Power Sphere, Precision Sphere.
+#   2. The raw `restimulus` labels present in every DB6 file are exactly
+#      {1, 3, 4, 6, 9, 10, 11}, in that presentation order, and the `object`
+#      codes recorded for each label match the two objects pictured above each
+#      name: 1->{2,4}, 3->{12,23}, 4->{10,14}, 6->{18,25}, 9->{19,20},
+#      10->{8,15}, 11->{4,9}.
+#
+# The DB6 page text itself never lists the names (only the figure does), which is
+# why the image is the authority here. Verified against all cached DB6 files;
+# see memory.md "Gesture set" for the verification note.
+#
+# AGENT.md rule 3: this mapping lives in config, never in code. Code reads the
+# raw label and looks up class_id; it must never contain a gesture name.
+
+source_url: https://ninapro.hevs.ch/instructions/DB6.html
+source_figure: DB6_movements1.jpg
+num_classes: 8          # 7 grasps + REST
+rest_class_id: 0
+
+# raw_label is the literal value in the .mat `restimulus` array.
+# class_id is the compact 0..7 index used by the model's output layer and by
+# every confusion matrix / per-class table.
+# objects are the DB6 `object` codes observed for that label -- reported as
+# provenance only, never used as a feature.
+gestures:
+  - raw_label: 0
+    class_id: 0
+    name: REST
+    objects: []
+    note: No-grasp rest state; present as restimulus==0.
+
+  - raw_label: 1
+    class_id: 1
+    name: Large Diameter
+    objects: [2, 4]
+    note: Bottle and can.
+
+  - raw_label: 3
+    class_id: 2
+    name: Adducted Thumb
+    objects: [12, 23]
+    note: Screwdriver and peeler.
+
+  - raw_label: 4
+    class_id: 3
+    name: Index Finger Extension
+    objects: [10, 14]
+    note: Knife and fork.
+
+  - raw_label: 6
+    class_id: 4
+    name: Medium Wrap
+    objects: [18, 25]
+    note: Pan and remote control.
+
+  - raw_label: 9
+    class_id: 5
+    name: Writing Tripod
+    objects: [19, 20]
+    note: Pen and pencil.
+
+  - raw_label: 10
+    class_id: 6
+    name: Power Sphere
+    objects: [8, 15]
+    note: Ball and apple.
+
+  - raw_label: 11
+    class_id: 7
+    name: Precision Sphere
+    objects: [4, 9]
+    note: Can and sunglasses.

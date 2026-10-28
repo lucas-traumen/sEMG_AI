@@ -1,0 +1,76 @@
+# The three candidate 1D-CNN architectures.
+#
+# They differ ONLY in capacity. Same stem depth, same kernel ladder (7 -> 5 -> 3),
+# same BatchNorm placement, same global average pooling, same head shape, same
+# dropout, same output width. That is what makes the model comparison a capacity
+# comparison instead of an architecture lottery.
+#
+# Shape contract (asserted by tests/test_models.py for every entry below):
+#   input  [B, 1, 400]        (one channel, 200 ms @ 2 kHz)
+#   output [B, 8]             raw logits, NO softmax in forward()
+#
+# Conv layers use bias=false because a BatchNorm follows immediately -- the bias
+# would be cancelled by the normalisation. Linear layers keep their bias. The
+# parameter counts below are the result of that choice, and are recorded here so
+# a change in the config that shifts them is visible in review:
+#   cnn_small  11,384   cnn_base  44,264   cnn_wide 168,232
+#
+# MACs are NOT taken from these numbers and not derived from FLOPs/2: models.py
+# computes MACs analytically per layer and separately measures FLOPs.
+
+input:
+  channels: 1
+  length: 400
+
+common:
+  conv_bias: false
+  batchnorm: true
+  activation: relu
+  pool: max
+  pool_kernel: 2
+  global_pool: adaptive_avg_pool1d
+  head_activation: relu
+  dropout: 0.3
+  num_classes: 8
+
+models:
+  cnn_small:
+    description: Smallest capacity; the embedded-friendly end of the ladder.
+    conv_blocks:
+      - {in_channels: 1,  out_channels: 16,  kernel_size: 7, padding: 3, pool: true}
+      - {in_channels: 16, out_channels: 32,  kernel_size: 5, padding: 2, pool: true}
+      - {in_channels: 32, out_channels: 64,  kernel_size: 3, padding: 1, pool: true}
+    head:
+      - {type: linear, in_features: 64,  out_features: 32, bias: true, activation: relu, dropout: 0.3}
+      - {type: linear, in_features: 32,  out_features: 8,  bias: true, activation: none, dropout: 0.0}
+    expected_params: 11384
+
+  cnn_base:
+    description: Reference architecture used for the whole channel screening stage.
+    conv_blocks:
+      - {in_channels: 1,   out_channels: 32,  kernel_size: 7, padding: 3, pool: true}
+      - {in_channels: 32,  out_channels: 64,  kernel_size: 5, padding: 2, pool: true}
+      - {in_channels: 64,  out_channels: 128, kernel_size: 3, padding: 1, pool: true}
+    head:
+      - {type: linear, in_features: 128, out_features: 64, bias: true, activation: relu, dropout: 0.3}
+      - {type: linear, in_features: 64,  out_features: 8,  bias: true, activation: none, dropout: 0.0}
+    expected_params: 44264
+
+  cnn_wide:
+    description: Largest capacity; tests whether the ceiling is model-bound.
+    conv_blocks:
+      - {in_channels: 1,   out_channels: 32,  kernel_size: 7, padding: 3, pool: true}
+      - {in_channels: 32,  out_channels: 64,  kernel_size: 5, padding: 2, pool: true}
+      - {in_channels: 64,  out_channels: 128, kernel_size: 3, padding: 1, pool: true}
+      - {in_channels: 128, out_channels: 256, kernel_size: 3, padding: 1, pool: true}
+    head:
+      - {type: linear, in_features: 256, out_features: 128, bias: true, activation: relu, dropout: 0.3}
+      - {type: linear, in_features: 128, out_features: 8,   bias: true, activation: none, dropout: 0.0}
+    expected_params: 168232
+
+# Used by Stage B/C only. Channel screening fixes the architecture so that a
+# difference between channels cannot be a difference between models.
+screening_model: cnn_base
+
+# Stage D trains the remaining architectures on the Top 3 channels.
+grid_models: [cnn_small, cnn_base, cnn_wide]

@@ -1,0 +1,8 @@
+# Kaggle image environment.
+# Do NOT add a torch pin here. The Kaggle Python image ships a GPU-enabled torch
+# built against its own CUDA runtime; replacing it with the local wheel is the
+# fastest way to make a kernel fail at import time. Stage reports record the
+# actual torch/CUDA/GPU versions per run, which is what reproducibility needs.
+# requirements-common.txt is still pinned and is installed on top of the image.
+
+-r requirements-common.txt

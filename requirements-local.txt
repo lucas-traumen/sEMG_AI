@@ -1,0 +1,12 @@
+# Local workstation environment (RTX 3050 Laptop, 4 GiB, driver 595.99.02 / CUDA 13.x).
+# Install into the project venv:
+#   python3 -m venv .venv
+#   .venv/bin/python -m pip install -r requirements-common.txt
+#   .venv/bin/python -m pip install -r requirements-local.txt
+#
+# The index-url is required: the default PyPI wheel for torch 2.13.0 is the CPU
+# build. CUDA 13.0 matches the installed driver; a cu12x wheel also runs on it,
+# but pinning keeps the reported torch/CUDA versions stable across runs.
+
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.13.0

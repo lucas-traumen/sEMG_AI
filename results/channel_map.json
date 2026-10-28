@@ -1,0 +1,335 @@
+{
+  "candidate_channels": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "CH16"
+  ],
+  "channels": [
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH01",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 0,
+      "median_mains_ratio": 1.0714966957753131,
+      "median_std_ratio": 3.9646782969258005,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH02",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 1,
+      "median_mains_ratio": 1.1350362223200179,
+      "median_std_ratio": 2.6597407059095266,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH03",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 2,
+      "median_mains_ratio": 1.16449953391502,
+      "median_std_ratio": 1.3681521366573948,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH04",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 3,
+      "median_mains_ratio": 1.1107573111553062,
+      "median_std_ratio": 0.6448524163585447,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH05",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 4,
+      "median_mains_ratio": 1.147721896755342,
+      "median_std_ratio": 0.5588250258906936,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH06",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 5,
+      "median_mains_ratio": 1.1057135399906826,
+      "median_std_ratio": 0.8082528500656441,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH07",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 6,
+      "median_mains_ratio": 1.4031571048672618,
+      "median_std_ratio": 0.9786055029256275,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH08",
+      "evidence_files": {
+        "constant_in_file": [
+          "S9_D1_T1.mat"
+        ],
+        "dead_in_file": [
+          "S10_D1_T2.mat"
+        ],
+        "low_amplitude": [
+          "S10_D1_T1.mat",
+          "S1_D1_T2.mat",
+          "S2_D1_T1.mat",
+          "S2_D1_T2.mat",
+          "S3_D1_T2.mat",
+          "S4_D1_T1.mat",
+          "S4_D1_T2.mat",
+          "S5_D1_T1.mat",
+          "S5_D1_T2.mat",
+          "S6_D1_T2.mat",
+          "S7_D1_T1.mat",
+          "S7_D1_T2.mat",
+          "S8_D1_T1.mat",
+          "S8_D1_T2.mat",
+          "S9_D1_T2.mat"
+        ]
+      },
+      "flag_counts": {
+        "constant_in_file": 1,
+        "dead_in_file": 1,
+        "low_amplitude": 15
+      },
+      "matrix_index": 7,
+      "median_mains_ratio": 1.152048923491207,
+      "median_std_ratio": 0.02405864597844649,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": false,
+      "channel_id": "CH09",
+      "evidence_files": {
+        "constant_in_file": [
+          "S10_D1_T1.mat",
+          "S10_D1_T2.mat",
+          "S1_D1_T1.mat",
+          "S1_D1_T2.mat",
+          "S2_D1_T1.mat",
+          "S2_D1_T2.mat",
+          "S3_D1_T1.mat",
+          "S3_D1_T2.mat",
+          "S4_D1_T1.mat",
+          "S4_D1_T2.mat",
+          "S5_D1_T1.mat",
+          "S5_D1_T2.mat",
+          "S6_D1_T1.mat",
+          "S6_D1_T2.mat",
+          "S7_D1_T1.mat",
+          "S7_D1_T2.mat",
+          "S8_D1_T1.mat",
+          "S8_D1_T2.mat",
+          "S9_D1_T1.mat",
+          "S9_D1_T2.mat"
+        ]
+      },
+      "flag_counts": {
+        "constant_in_file": 20
+      },
+      "matrix_index": 8,
+      "median_mains_ratio": null,
+      "median_std_ratio": 0.0,
+      "n_files_observed": 20,
+      "reason_code": "structurally_empty_column_documented",
+      "structural_status": "structurally_empty"
+    },
+    {
+      "candidate_eligible": false,
+      "channel_id": "CH10",
+      "evidence_files": {
+        "constant_in_file": [
+          "S10_D1_T1.mat",
+          "S10_D1_T2.mat",
+          "S1_D1_T1.mat",
+          "S1_D1_T2.mat",
+          "S2_D1_T1.mat",
+          "S2_D1_T2.mat",
+          "S3_D1_T1.mat",
+          "S3_D1_T2.mat",
+          "S4_D1_T1.mat",
+          "S4_D1_T2.mat",
+          "S5_D1_T1.mat",
+          "S5_D1_T2.mat",
+          "S6_D1_T1.mat",
+          "S6_D1_T2.mat",
+          "S7_D1_T1.mat",
+          "S7_D1_T2.mat",
+          "S8_D1_T1.mat",
+          "S8_D1_T2.mat",
+          "S9_D1_T1.mat",
+          "S9_D1_T2.mat"
+        ]
+      },
+      "flag_counts": {
+        "constant_in_file": 20
+      },
+      "matrix_index": 9,
+      "median_mains_ratio": null,
+      "median_std_ratio": 0.0,
+      "n_files_observed": 20,
+      "reason_code": "structurally_empty_column_documented",
+      "structural_status": "structurally_empty"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH11",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 10,
+      "median_mains_ratio": 1.1272410776819328,
+      "median_std_ratio": 3.1312467812125826,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH12",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 11,
+      "median_mains_ratio": 1.3893514289500049,
+      "median_std_ratio": 2.534702984478019,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH13",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 12,
+      "median_mains_ratio": 1.369301792513037,
+      "median_std_ratio": 1.3264629851107477,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH14",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 13,
+      "median_mains_ratio": 1.2426397683787507,
+      "median_std_ratio": 0.7320740508641914,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH15",
+      "evidence_files": {},
+      "flag_counts": {},
+      "matrix_index": 14,
+      "median_mains_ratio": 1.3437156936107169,
+      "median_std_ratio": 0.6417618042441136,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    },
+    {
+      "candidate_eligible": true,
+      "channel_id": "CH16",
+      "evidence_files": {
+        "dead_in_file": [
+          "S10_D1_T1.mat",
+          "S10_D1_T2.mat",
+          "S6_D1_T1.mat",
+          "S6_D1_T2.mat",
+          "S8_D1_T1.mat",
+          "S9_D1_T1.mat",
+          "S9_D1_T2.mat"
+        ],
+        "low_amplitude": [
+          "S5_D1_T1.mat",
+          "S7_D1_T1.mat",
+          "S7_D1_T2.mat",
+          "S8_D1_T2.mat"
+        ]
+      },
+      "flag_counts": {
+        "dead_in_file": 7,
+        "low_amplitude": 4
+      },
+      "matrix_index": 15,
+      "median_mains_ratio": 1.0277730925744537,
+      "median_std_ratio": 0.024840597923578747,
+      "n_files_observed": 20,
+      "reason_code": "",
+      "structural_status": "physical"
+    }
+  ],
+  "matrix_columns": 16,
+  "n_candidate_eligible": 14,
+  "n_physical": 14,
+  "n_structurally_empty": 2,
+  "note": "structural_status describes the DB6 montage; qc_flags describe observations in individual files. Only a hard QC failure removes a channel from the candidate set.",
+  "physical_channels": [
+    "CH01",
+    "CH02",
+    "CH03",
+    "CH04",
+    "CH05",
+    "CH06",
+    "CH07",
+    "CH08",
+    "CH11",
+    "CH12",
+    "CH13",
+    "CH14",
+    "CH15",
+    "CH16"
+  ],
+  "schema_version": 1,
+  "structurally_empty_channels": [
+    "CH09",
+    "CH10"
+  ]
+}
